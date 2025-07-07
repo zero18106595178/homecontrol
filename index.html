@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>学海浏览器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background-color: #e6f2ff;
+        }
+        
+        /* 导航页样式 */
+        #home-page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #e6f2ff 0%, #cce0ff 100%);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c5fa8;
+            font-weight: bold;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+            animation: slideDown 0.6s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        #url-container {
+            width: 90%;
+            display: flex;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.7s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #url-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #a3c1ff;
+            border-radius: 25px 0 0 25px;
+            font-size: 16px;
+            background-color: rgba(255,255,255,0.8);
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        #url-input:focus {
+            border-color: #4a89dc;
+            box-shadow: 0 0 0 2px rgba(74, 137, 220, 0.2);
+        }
+        
+        #go-button {
+            padding: 0 20px;
+            background: linear-gradient(to bottom, #4a89dc, #3b7dd8);
+            color: white;
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        #go-button:active {
+            background: linear-gradient(to bottom, #3b7dd8, #2d6ed4);
+            transform: translateY(1px);
+        }
+        
+        #bookmarks-container {
+            width: 90%;
+            height: calc(100% - 120px);
+            overflow-y: auto;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .bookmark-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #d9e6ff;
+            position: relative;
+            transition: all 0.3s;
+            transform-origin: top;
+        }
+        
+        .bookmark-item:active {
+            background-color: rgba(74, 137, 220, 0.1);
+        }
+        
+        .bookmark-item-enter {
+            animation: bookmarkEnter 0.4s ease-out forwards;
+        }
+        
+        @keyframes bookmarkEnter {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .bookmark-label {
+            width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .bookmark-status {
+            width: 20%;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .status-running {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .status-stopped {
+            color: #e74c3c;
+        }
+        
+        .bookmark-close {
+            width: 20%;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .close-button {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        .close-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* 标签页样式 */
+        #tab-page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            flex-direction: column;
+            background-color: #e6f2ff;
+        }
+        
+        #tab-controls {
+            height: 5%;
+            min-height: 40px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 5px;
+            background: linear-gradient(to bottom, #e6f2ff, #d0e0ff); /* 更浅的蓝色背景 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.3s;
+        }
+        
+        #tab-controls:hover {
+            background: linear-gradient(to bottom, #d0e0ff, #bad0ff);
+        }
+        
+        .tab-button {
+            padding: 8px 12px;
+            min-width: 18%;
+            background: linear-gradient(to bottom, #4a89dc, #3b7dd8);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        .tab-button:active {
+            background: linear-gradient(to bottom, #3b7dd8, #2d6ed4);
+            transform: translateY(1px) scale(0.98);
+        }
+        
+        #tab-content {
+            height: 95%;
+            position: relative;
+        }
+        
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            z-index: 1;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .iframe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.02);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .iframe-element {
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 2;
+            opacity: 0;
+            animation: iframeFadeIn 0.5s ease-out 0.2s forwards;
+        }
+        
+        @keyframes iframeFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 编辑弹窗样式 */
+        #edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        #edit-form {
+            width: 85%;
+            background: linear-gradient(to bottom, #f5f9ff, #e6f2ff);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            animation: modalEnter 0.3s ease-out forwards;
+        }
+        
+        @keyframes modalEnter {
+            to { transform: scale(1); }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c5fa8;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #a3c1ff;
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.8);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: #4a89dc;
+            box-shadow: 0 0 0 2px rgba(74, 137, 220, 0.2);
+        }
+        
+        #form-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .form-button-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        #save-button, #cancel-button, #delete-button, #move-up-button, #move-down-button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            margin: 5px 0;
+            transform: translateY(0);
+        }
+        
+        #save-button:hover, #cancel-button:hover, #delete-button:hover, 
+        #move-up-button:hover, #move-down-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+        
+        #save-button:active, #cancel-button:active, #delete-button:active, 
+        #move-up-button:active, #move-down-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        #save-button {
+            background: linear-gradient(to bottom, #4adc93, #4ad690);
+            color: white;
+            flex: 1;
+            margin-right: 5px;
+        }
+        
+        #cancel-button {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            color: white;
+            flex: 1;
+            margin-left: 5px;
+        }
+        
+        #delete-button {
+            background: linear-gradient(to bottom, #bdbdbd, #a0a0a0);
+            color: white;
+            width: 100%;
+        }
+        
+        #move-up-button {
+            background: linear-gradient(to bottom, #96afff, #4472c9);
+            color: white;
+            flex: 1;
+            margin-right: 5px;
+        }
+        
+        #move-down-button {
+            background: linear-gradient(to bottom, #96afff, #4472c9);
+            color: white;
+            flex: 1;
+            margin-left: 5px;
+        }
+        
+        /* 添加书签按钮 */
+        /* 书签项样式修改 */
+.bookmark-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 15px;
+    margin: 10px 12px; /* 增加外边距 */
+    background-color: rgb(216, 240, 247);
+    border-radius: 10px; /* 圆角 */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* 添加阴影 */
+    transition: all 0.3s ease;
+    transform-origin: top;
+    border: 1px solid rgba(74, 137, 220, 0.1); /* 添加浅色边框 */
+    height: auto; /* 移除固定高度 */
+    min-height: 60px; /* 设置最小高度 */
+}
+
+/* 悬停效果 */
+.bookmark-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    border-color: rgba(74, 137, 220, 0.3);
+}
+
+/* 点击效果 */
+.bookmark-item:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: rgba(74, 137, 220, 0.05);
+}
+
+/* 书签容器调整 */
+#bookmarks-container {
+    width: 90%;
+    height: calc(100% - 150px);
+    overflow-y: auto;
+    background-color: transparent; /* 移除背景色 */
+    border-radius: 12px;
+    padding: 5px 0; /* 添加内边距 */
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* 滚动条样式调整 */
+#bookmarks-container::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.02);
+    border-radius: 3px;
+}
+
+/* 书签标签样式调整 */
+.bookmark-label {
+    width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #2c3e50;
+    font-weight: 500;
+    padding: 0 8px; /* 增加内边距 */
+}
+
+/* 状态样式调整 */
+.bookmark-status {
+    width: 20%;
+    text-align: center;
+    font-size: 14px;
+    padding: 0 8px; /* 增加内边距 */
+}
+
+/* 关闭按钮样式调整 */
+.bookmark-close {
+    width: 20%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 8px; /* 增加内边距 */
+}
+
+/* 添加书签按钮样式调整 */
+#add-bookmark {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    margin: 10px 12px; /* 与书签项一致 */
+    font-size: 28px;
+    color: #4a89dc;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border: 1px dashed rgba(74, 137, 220, 0.3);
+    transition: all 0.3s;
+}
+
+#add-bookmark:hover {
+    background-color: rgba(74, 137, 220, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+#add-bookmark:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+        
+        /* 滚动条样式 */
+        #bookmarks-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #bookmarks-container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+        }
+        
+        #bookmarks-container::-webkit-scrollbar-thumb {
+            background: rgba(74, 137, 220, 0.5);
+            border-radius: 3px;
+        }
+        
+        #bookmarks-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(74, 137, 220, 0.7);
+        }
+        .bookmark-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 15px; /* 增加内边距 */
+            height: 60px; /* 设置固定高度 */
+            border-bottom: 1px solid #d9e6ff;
+            position: relative;
+            transition: all 0.3s;
+            transform-origin: top;
+        }
+
+        /* 调整书签容器高度 */
+        #bookmarks-container {
+            width: 90%;
+            height: calc(100% - 150px); /* 调整高度 */
+            overflow-y: auto;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* 确认弹窗样式 */
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .confirm-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .confirm-message {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .confirm-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .confirm-yes {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .confirm-no {
+            background-color: #bdc3c7;
+            color: #2c3e50;
+        }
+        /* 添加覆盖层样式 */
+        #image-cover {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        
+        #cover-image {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+        
+        #cover-timer {
+            color: white;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航页 -->
+    <div id="home-page">
+        <h1 id="title">学海浏览器</h1>
+        <div id="url-container">
+            <input type="text" id="url-input" placeholder="输入网址...">
+            <button id="go-button">跳转</button>
+        </div>
+        <div id="bookmarks-container">
+            <!-- 书签列表将通过JavaScript动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 标签页 -->
+    <div id="tab-page">
+        <div id="tab-controls">
+            <button class="tab-button" id="home-button">主页</button>
+            <button class="tab-button" id="fullscreen-button">旋转</button>
+            <button class="tab-button" id="copy-button">返回</button>
+            <button class="tab-button" id="paste-button">暂停</button>
+            <button class="tab-button" id="close-button">关闭</button>
+        </div>
+        <div id="tab-content">
+            <!-- iframe将通过JavaScript动态添加 -->
+        </div>
+    </div>
+    
+    <!-- 编辑弹窗 -->
+    <div id="edit-modal">
+        <div id="edit-form">
+            <div class="form-group">
+                <label for="edit-label">标签</label>
+                <input type="text" id="edit-label" placeholder="输入标签名称">
+            </div>
+            <div class="form-group">
+                <label for="edit-url">URL</label>
+                <input type="text" id="edit-url" placeholder="输入网址">
+            </div>
+            <div id="form-buttons">
+                <div class="form-button-row">
+                    <button id="move-up-button">上移</button>
+                    <button id="move-down-button">下移</button>
+                </div>
+                <div class="form-button-row">
+                    <button id="save-button">保存</button>
+                    <button id="cancel-button">删除</button>
+                </div>
+                
+                <button id="delete-button">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认弹窗 -->
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-content">
+            <div class="confirm-message" id="confirm-message">确定要关闭此标签页吗？</div>
+            <div class="confirm-buttons">
+                <button class="confirm-button confirm-yes" id="confirm-yes">确定</button>
+                <button class="confirm-button confirm-no" id="confirm-no">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="image-cover">
+        <h3 style="color: #ffffff;">学习许久，放松一下吧</h3>
+        <div id="cover-timer"></div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let bookmarks = JSON.parse(localStorage.getItem('bookmark')) || [];
+        let currentTabId = null;
+        let clipboardContent = '';
+        let editingBookmarkId = null;
+        let isFullScreen = false;
+        let pendingCloseTabId = null;
+        
+        // DOM元素
+        const homePage = document.getElementById('home-page');
+        const tabPage = document.getElementById('tab-page');
+        const urlInput = document.getElementById('url-input');
+        const goButton = document.getElementById('go-button');
+        const bookmarksContainer = document.getElementById('bookmarks-container');
+        const tabContent = document.getElementById('tab-content');
+        const homeButton = document.getElementById('home-button');
+        const fullscreenButton = document.getElementById('fullscreen-button');
+        const copyButton = document.getElementById('copy-button');
+        const pasteButton = document.getElementById('paste-button');
+        const closeButton = document.getElementById('close-button');
+        const editModal = document.getElementById('edit-modal');
+        const editLabel = document.getElementById('edit-label');
+        const editUrl = document.getElementById('edit-url');
+        const saveButton = document.getElementById('save-button');
+        const cancelButton = document.getElementById('delete-button');
+        const deleteButton = document.getElementById('cancel-button');
+        const moveUpButton = document.getElementById('move-up-button');
+        const moveDownButton = document.getElementById('move-down-button');
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmMessage = document.getElementById('confirm-message');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
+        
+        // 初始化
+        function init() {
+            renderBookmarks();
+            setupEventListeners();
+        }
+
+        // 修改粘贴按钮事件处理
+        pasteButton.addEventListener('click', showCoverImage);
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 跳转按钮点击事件
+            goButton.addEventListener('click', () => {
+                const url = urlInput.value.trim();
+                if (url) {
+                    createNewTab(url, '新标签页');
+                    urlInput.value = '';
+                }
+            });
+            
+            // URL输入框回车事件
+            urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const url = urlInput.value.trim();
+                    if (url) {
+                        createNewTab(url, '新标签页');
+                        urlInput.value = '';
+                    }
+                }
+            });
+            
+            // 主页按钮点击事件
+            homeButton.addEventListener('click', () => {
+                showHomePage();
+            });
+            
+            // 全屏按钮点击事件
+            fullscreenButton.addEventListener('click', toggleFullScreen);
+            
+            // 修改复制按钮事件处理
+            copyButton.addEventListener('click', () => {
+                history.back();
+            });
+
+            
+            
+            // 关闭按钮点击事件 - 显示确认弹窗
+            closeButton.addEventListener('click', () => {
+                if (currentTabId) {
+                    showConfirmModal('确定要关闭此标签页吗？', () => {
+                        closeTabOnly(currentTabId);
+                    });
+                }
+            });
+            
+            // 保存按钮点击事件
+            saveButton.addEventListener('click', saveBookmark);
+            
+            // 取消按钮点击事件
+            cancelButton.addEventListener('click', () => {
+                editModal.style.display = 'none';
+                editingBookmarkId = null;
+            });
+            
+            // 删除按钮点击事件
+            deleteButton.addEventListener('click', deleteCurrentBookmark);
+            
+            // 上移按钮点击事件
+            moveUpButton.addEventListener('click', moveBookmarkUp);
+            
+            // 下移按钮点击事件
+            moveDownButton.addEventListener('click', moveBookmarkDown);
+            
+            // 确认弹窗按钮事件
+            confirmYes.addEventListener('click', () => {
+                if (typeof pendingCloseTabId === 'function') {
+                    pendingCloseTabId();
+                }
+                confirmModal.style.display = 'none';
+            });
+            
+            confirmNo.addEventListener('click', () => {
+                confirmModal.style.display = 'none';
+                pendingCloseTabId = null;
+            });
+        }
+        
+        // 显示确认弹窗
+        function showConfirmModal(message, callback) {
+            confirmMessage.textContent = message;
+            pendingCloseTabId = callback;
+            confirmModal.style.display = 'flex';
+        }
+        
+        // 渲染书签列表
+        function renderBookmarks() {
+            bookmarksContainer.innerHTML = '';
+            
+            // 更新书签状态（检查iframe是否存在）
+            bookmarks.forEach(bookmark => {
+                bookmark.active = document.getElementById(bookmark.id) !== null;
+            });
+            
+            // 分离正在运行和未运行的书签
+            const activeBookmarks = bookmarks.filter(b => b.active);
+            const inactiveBookmarks = bookmarks.filter(b => !b.active);
+            
+            // 合并书签列表，正在运行的在前
+            const sortedBookmarks = [...activeBookmarks, ...inactiveBookmarks];
+            
+            // 渲染书签
+            sortedBookmarks.forEach(bookmark => {
+                const bookmarkItem = createBookmarkElement(bookmark);
+                bookmarksContainer.appendChild(bookmarkItem);
+            });
+            
+            // 添加"添加书签"按钮
+            const addBookmark = document.createElement('div');
+            addBookmark.id = 'add-bookmark';
+            addBookmark.textContent = '+';
+            addBookmark.addEventListener('click', () => {
+                showEditModal(null);
+            });
+            bookmarksContainer.appendChild(addBookmark);
+        }
+        
+        // 创建书签元素
+        function createBookmarkElement(bookmark) {
+            const bookmarkItem = document.createElement('div');
+            bookmarkItem.className = 'bookmark-item';
+            bookmarkItem.dataset.id = bookmark.id;
+            
+            const label = document.createElement('div');
+            label.className = 'bookmark-label';
+            label.textContent = bookmark.label;
+            
+            const status = document.createElement('div');
+            status.className = 'bookmark-status';
+            const statusText = document.createElement('span');
+            statusText.className = bookmark.active ? 'status-running' : 'status-stopped';
+            statusText.textContent = bookmark.active ? '正在运行' : '未运行';
+            status.appendChild(statusText);
+            
+            const close = document.createElement('div');
+            close.className = 'bookmark-close';
+            
+            // 只有正在运行的书签才显示关闭按钮
+            if (bookmark.active) {
+                const closeBtn = document.createElement('div');
+                closeBtn.className = 'close-button';
+                closeBtn.textContent = 'X';
+                close.appendChild(closeBtn);
+                
+                // 关闭按钮点击事件 - 显示确认弹窗
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showConfirmModal('确定要关闭此标签页吗？', () => {
+                        closeTabOnly(bookmark.id);
+                    });
+                });
+            }
+            
+            bookmarkItem.appendChild(label);
+            bookmarkItem.appendChild(status);
+            bookmarkItem.appendChild(close);
+            
+            // 点击事件 - 打开书签
+            bookmarkItem.addEventListener('click', (e) => {
+                if (e.target.className !== 'close-button') {
+                    openBookmark(bookmark.id);
+                }
+            });
+            
+            // 长按事件 - 编辑书签
+            let pressTimer;
+            bookmarkItem.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    showEditModal(bookmark.id);
+                }, 500);
+            });
+            
+            bookmarkItem.addEventListener('touchend', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            bookmarkItem.addEventListener('touchmove', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            return bookmarkItem;
+        }
+        
+        // 创建新标签页
+        function createNewTab(url, label) {
+            // 确保URL以http://或https://开头
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            const tabId = 'tab-' + Date.now();
+            
+            // 创建iframe容器
+            const iframeContainer = document.createElement('div');
+            iframeContainer.className = 'iframe-container';
+            iframeContainer.id = tabId;
+            
+            // 创建iframe
+            const iframe = document.createElement('iframe');
+            iframe.className = 'iframe-element';
+            iframe.src = url;
+            
+            // 创建遮罩层
+            const overlay = document.createElement('div');
+            overlay.className = 'iframe-overlay';
+            
+            iframeContainer.appendChild(iframe);
+            iframeContainer.appendChild(overlay);
+            tabContent.appendChild(iframeContainer);
+            
+            // 添加到书签
+            const bookmark = {
+                id: tabId,
+                label: label,
+                url: url,
+                active: true
+            };
+            
+            bookmarks.unshift(bookmark);
+            saveBookmarks();
+            
+            // 显示标签页
+            showTabPage(tabId);
+            
+            // 更新书签列表
+            renderBookmarks();
+        }
+
+        // 打开书签
+        function openBookmark(bookmarkId) {
+            const bookmark = bookmarks.find(b => b.id === bookmarkId);
+            if (!bookmark) return;
+            
+            // 检查是否已经存在iframe
+            let iframeContainer = document.getElementById(bookmarkId);
+            
+            if (!iframeContainer) {
+                // 创建新的iframe容器
+                iframeContainer = document.createElement('div');
+                iframeContainer.className = 'iframe-container';
+                iframeContainer.id = bookmarkId;
+                
+                // 创建iframe
+                const iframe = document.createElement('iframe');
+                iframe.className = 'iframe-element';
+                iframe.src = bookmark.url;
+                
+                // 创建遮罩层
+                const overlay = document.createElement('div');
+                overlay.className = 'iframe-overlay';
+                
+                iframeContainer.appendChild(iframe);
+                iframeContainer.appendChild(overlay);
+                tabContent.appendChild(iframeContainer);
+                
+                // 更新书签状态
+                bookmark.active = true;
+                saveBookmarks();
+            }
+            
+            // 显示标签页
+            showTabPage(bookmarkId);
+            
+            // 更新书签列表
+            renderBookmarks();
+        }
+        
+        // 只关闭标签页不删除书签
+        function closeTabOnly(tabId) {
+            // 从DOM中移除iframe
+            const iframeContainer = document.getElementById(tabId);
+            if (iframeContainer) {
+                iframeContainer.remove();
+            }
+            
+            // 更新书签状态
+            const bookmark = bookmarks.find(b => b.id === tabId);
+            if (bookmark) {
+                bookmark.active = false;
+                saveBookmarks();
+            }
+            
+            // 如果关闭的是当前标签页，返回主页
+            if (currentTabId === tabId) {
+                showHomePage();
+            }
+            
+            // 更新书签列表
+            renderBookmarks();
+        }
+        
+        // 删除当前编辑的书签
+        function deleteCurrentBookmark() {
+            if (!editingBookmarkId) return;
+            
+            showConfirmModal('确定要删除此书签吗？', () => {
+                // 从书签列表中移除
+                bookmarks = bookmarks.filter(b => b.id !== editingBookmarkId);
+                saveBookmarks();
+                
+                // 关闭iframe如果存在
+                const iframeContainer = document.getElementById(editingBookmarkId);
+                if (iframeContainer) {
+                    iframeContainer.remove();
+                }
+                
+                // 如果删除的是当前标签页，返回主页
+                if (currentTabId === editingBookmarkId) {
+                    showHomePage();
+                }
+                
+                // 关闭弹窗
+                editModal.style.display = 'none';
+                editingBookmarkId = null;
+                
+                // 更新书签列表
+                renderBookmarks();
+            });
+        }
+        
+        // 上移书签
+        function moveBookmarkUp() {
+            if (!editingBookmarkId) return;
+            
+            // 找到书签在原始数组中的位置
+            const originalIndex = bookmarks.findIndex(b => b.id === editingBookmarkId);
+            if (originalIndex > 0) {
+                // 交换位置
+                [bookmarks[originalIndex], bookmarks[originalIndex - 1]] = [bookmarks[originalIndex - 1], bookmarks[originalIndex]];
+                saveBookmarks();
+                renderBookmarks();
+            }
+        }
+        
+        // 下移书签
+        function moveBookmarkDown() {
+            if (!editingBookmarkId) return;
+            
+            // 找到书签在原始数组中的位置
+            const originalIndex = bookmarks.findIndex(b => b.id === editingBookmarkId);
+            if (originalIndex < bookmarks.length - 1) {
+                // 交换位置
+                [bookmarks[originalIndex], bookmarks[originalIndex + 1]] = [bookmarks[originalIndex + 1], bookmarks[originalIndex]];
+                saveBookmarks();
+                renderBookmarks();
+            }
+        }
+        
+        // 显示主页
+        function showHomePage() {
+            homePage.style.display = 'flex';
+            tabPage.style.display = 'none';
+            currentTabId = null;
+            
+            // 更新书签列表（检查运行状态）
+            renderBookmarks();
+        }
+        
+        // 显示标签页
+        function showTabPage(tabId) {
+            homePage.style.display = 'none';
+            tabPage.style.display = 'flex';
+            currentTabId = tabId;
+            
+            // 隐藏所有iframe
+            document.querySelectorAll('.iframe-container').forEach(container => {
+                container.style.display = 'none';
+            });
+            
+            // 显示当前iframe
+            const iframeContainer = document.getElementById(tabId);
+            if (iframeContainer) {
+                iframeContainer.style.display = 'block';
+            }
+        }
+        
+        // 显示编辑弹窗
+        function showEditModal(bookmarkId) {
+            if (bookmarkId) {
+                // 编辑现有书签
+                const bookmark = bookmarks.find(b => b.id === bookmarkId);
+                if (bookmark) {
+                    editLabel.value = bookmark.label;
+                    editUrl.value = bookmark.url;
+                    editingBookmarkId = bookmarkId;
+                }
+            } else {
+                // 添加新书签
+                editLabel.value = '';
+                editUrl.value = '';
+                editingBookmarkId = null;
+            }
+            
+            editModal.style.display = 'flex';
+            editLabel.focus();
+        }
+        
+        // 保存书签
+        function saveBookmark() {
+            const label = editLabel.value.trim();
+            let url = editUrl.value.trim();
+            
+            if (!label || !url) {
+                alert('标签和URL不能为空');
+                return;
+            }
+            
+            // 确保URL以http://或https://开头
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            if (editingBookmarkId) {
+                // 更新现有书签
+                const bookmark = bookmarks.find(b => b.id === editingBookmarkId);
+                if (bookmark) {
+                    bookmark.label = label;
+                    bookmark.url = url;
+                }
+            } else {
+                // 添加新书签
+                const bookmark = {
+                    id: 'bookmark-' + Date.now(),
+                    label: label,
+                    url: url,
+                    active: false
+                };
+                bookmarks.unshift(bookmark);
+            }
+            
+            saveBookmarks();
+            renderBookmarks();
+            editModal.style.display = 'none';
+            editingBookmarkId = null;
+        }
+        
+        // 保存书签到本地存储
+        function saveBookmarks() {
+            localStorage.setItem('bookmark', JSON.stringify(bookmarks));
+        }
+        
+        // 切换全屏
+        function toggleFullScreen() {
+            if (!isFullScreen) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                isFullScreen = true;
+                fullscreenButton.textContent = '取消全屏';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                isFullScreen = false;
+                fullscreenButton.textContent = '全屏';
+            }
+        }
+        // 添加新函数
+        function showCoverImage() {
+            
+
+            const coverElement = document.getElementById('image-cover');
+            const timerElement = document.getElementById('cover-timer');
+
+            // 显示覆盖层（不显示图片）
+            coverElement.style.display = 'flex';
+            coverImageShown = true;
+
+            // 设置倒计时
+            const minutes = parseFloat(prompt("停用时间(分钟)", 5)) || 0.01;
+            const totalSeconds = minutes * 60;
+            const startTime = new Date(); // 记录开始时间
+
+            localStorage.setItem('timerData', JSON.stringify({
+                startTime: new Date().getTime(),
+                totalSeconds: minutes * 60
+            }));
+
+            updateTimer(); // 立即更新一次显示
+
+            const timerInterval = setInterval(updateTimer, 1000);
+
+            function updateTimer() {
+                const currentTime = new Date();
+                const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+                const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+                
+                // 格式化为"分:秒"
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                timerElement.textContent = `剩余时间 ${mins}'${secs < 10 ? '0' + secs : secs}"`;
+                
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    hideCoverImage();
+                    }
+                }
+            }
+
+            function cancelHideTimer() {
+                clearTimeout(coverImageTimer);
+            }
+
+            function hideCoverImage() {
+                const coverElement = document.getElementById('image-cover');
+                coverElement.style.display = 'none';
+                localStorage.removeItem('timerData');
+            }
+            function showCoverImageWithRemaining(remainingSeconds, originalStartTime) {
+                const coverElement = document.getElementById('image-cover');
+                const timerElement = document.getElementById('cover-timer');
+                
+                coverElement.style.display = 'flex';
+                
+                // 计算已过去的时间
+                const now = new Date().getTime();
+                const elapsed = Math.floor((now - originalStartTime) / 1000);
+                const adjustedRemaining = Math.max(0, remainingSeconds - elapsed);
+                
+                // 使用调整后的剩余时间和原始开始时间
+                let remaining = adjustedRemaining;
+                const start = now - (remainingSeconds - remaining) * 1000;
+                
+                const timerInterval = setInterval(() => {
+                    remaining = Math.max(0, adjustedRemaining - Math.floor((Date.now() - now) / 1000));
+                    
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    timerElement.textContent = `剩余时间 ${mins}'${secs < 10 ? '0' + secs : secs}"`;
+                    
+                    if (remaining <= 0) {
+                        clearInterval(timerInterval);
+                        hideCoverImage();
+                        localStorage.removeItem('timerData');
+                    }
+                }, 1000);
+            }
+
+        function disableBackButton() {
+            history.pushState(null, null, location.href);
+            window.addEventListener('popstate', function () {
+            history.pushState(null, null, location.href);});
+        }
+        
+        // 初始化应用
+        init();
+        
+        // 检查是否有未完成的计时器
+        const timerData = localStorage.getItem('timerData');
+        if (timerData) {
+            const { startTime, totalSeconds } = JSON.parse(timerData);
+            const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+            
+            if (elapsedSeconds < totalSeconds) {
+                // 继续计时
+                const remainingSeconds = totalSeconds - elapsedSeconds;
+                showCoverImageWithRemaining(remainingSeconds, startTime);
+            } else {
+                // 计时已完成，清除数据
+                localStorage.removeItem('timerData');
+            }
+        }
+
+        disableBackButton();
+
+    </script>
+</body>
+</html>
